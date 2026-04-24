@@ -1,0 +1,100 @@
+﻿HTML
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>未来资产复利计算器</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        h2 { color: #2c3e50; text-align: center; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #666; font-size: 14px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #219150; }
+        .result { margin-top: 25px; padding: 15px; background: #e8f5e9; border-radius: 8px; text-align: center; }
+        .result-val { font-size: 24px; font-weight: bold; color: #27ae60; }
+        canvas { margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>💰 财富增值计算器</h2>
+    <div class="input-group">
+        <label>初始资金 (元)</label>
+        <input type="number" id="principal" value="513100">
+    </div>
+    <div class="input-group">
+        <label>预期年化收益率 (%)</label>
+        <input type="number" id="rate" value="8" step="0.1">
+    </div>
+    <div class="input-group">
+        <label>投资年限 (年)</label>
+        <input type="number" id="years" value="20">
+    </div>
+    <button onclick="calculate()">开始计算</button>
+
+    <div class="result" id="resultBox" style="display:none;">
+        <div>预计 <span id="resYears">20</span> 年后资产总额：</div>
+        <div class="result-val" id="totalWealth">¥ 0.00</div>
+        <div style="font-size: 12px; color: #7f8c8d; margin-top: 5px;">
+            约相当于现在的 <span id="times">0</span> 倍
+        </div>
+    </div>
+
+    <canvas id="growthChart"></canvas>
+</div>
+
+<script>
+    let myChart = null;
+
+    function calculate() {
+        const P = parseFloat(document.getElementById('principal').value);
+        const r = parseFloat(document.getElementById('rate').value) / 100;
+        const n = parseInt(document.getElementById('years').value);
+
+        if (isNaN(P) || isNaN(r) || isNaN(n)) return alert("请输入有效数字");
+
+        let dataPoints = [];
+        let labels = [];
+        for (let i = 0; i <= n; i++) {
+            let amount = P * Math.pow((1 + r), i);
+            dataPoints.push(amount.toFixed(2));
+            labels.push("第" + i + "年");
+        }
+
+        // 更新文字结果
+        const finalAmount = dataPoints[n];
+        document.getElementById('totalWealth').innerText = "¥ " + parseFloat(finalAmount).toLocaleString();
+        document.getElementById('resYears').innerText = n;
+        document.getElementById('times').innerText = (finalAmount / P).toFixed(1);
+        document.getElementById('resultBox').style.display = "block";
+
+        // 更新图表
+        if (myChart) myChart.destroy();
+        const ctx = document.getElementById('growthChart').getContext('2d');
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '资金增长曲线',
+                    data: dataPoints,
+                    borderColor: '#27ae60',
+                    backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: false } } }
+        });
+    }
+</script>
+
+</body>
+</html>
